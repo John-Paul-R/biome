@@ -5,7 +5,7 @@ use biome_formatter::{
     LineEnding, LineWidth, QuoteStyle, TrailingNewline,
 };
 use biome_js_formatter::context::{
-    ArrowParentheses, OperatorLinebreak, QuoteProperties, Semicolons,
+    ArrowParentheses, ObjectDestructuringLineBreaks, OperatorLinebreak, QuoteProperties, Semicolons,
     trailing_commas::TrailingCommas,
 };
 use bpaf::Bpaf;
@@ -126,6 +126,14 @@ pub struct JsFormatterConfiguration {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub operator_linebreak: Option<OperatorLinebreak>,
 
+    /// Whether to preserve line breaks in object destructuring patterns. Defaults to "auto".
+    #[bpaf(
+        long("javascript-formatter-object-destructuring-line-breaks"),
+        argument("auto|preserve")
+    )]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub object_destructuring_line_breaks: Option<ObjectDestructuringLineBreaks>,
+
     /// Whether to add a trailing newline at the end of the file.
     ///
     /// Setting this option to `false` is **highly discouraged** because it could cause many problems with other tools:
@@ -180,5 +188,9 @@ impl JsFormatterConfiguration {
 
     pub fn operator_linebreak_resolved(&self) -> OperatorLinebreak {
         self.operator_linebreak.unwrap_or_default()
+    }
+
+    pub fn object_destructuring_line_breaks_resolved(&self) -> ObjectDestructuringLineBreaks {
+        self.object_destructuring_line_breaks.unwrap_or_default()
     }
 }
