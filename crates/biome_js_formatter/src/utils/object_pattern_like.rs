@@ -1,4 +1,5 @@
 use crate::JsFormatContext;
+use crate::context::ObjectDestructuringLineBreaks;
 use crate::js::bindings::parameters::{FormatAnyJsParameters, should_hug_function_parameters};
 use crate::prelude::*;
 use biome_formatter::formatter::Formatter;
@@ -129,6 +130,13 @@ impl JsObjectPatternLike {
         )
     }
 
+    fn properties_have_leading_newline(&self) -> bool {
+        match self {
+            Self::JsObjectAssignmentPattern(node) => node.properties().syntax().has_leading_newline(),
+            Self::JsObjectBindingPattern(node) => node.properties().syntax().has_leading_newline(),
+        }
+    }
+
     fn is_hug_parameter(&self, comments: &JsComments) -> bool {
         match self {
             Self::JsObjectAssignmentPattern(_) => false,
@@ -142,7 +150,7 @@ impl JsObjectPatternLike {
         }
     }
 
-    fn layout(&self, comments: &JsComments) -> FormatResult<ObjectPatternLayout> {
+    fn layout(&self, comments: &JsComments, object_destructuring_line_breaks: ObjectDestructuringLineBreaks) -> FormatResult<ObjectPatternLayout> {
         if self.is_empty() {
             return Ok(ObjectPatternLayout::Empty);
         }
@@ -156,7 +164,11 @@ impl JsObjectPatternLike {
         let result = if break_properties {
             ObjectPatternLayout::Group { expand: true }
         } else if self.is_in_assignment_like() {
-            ObjectPatternLayout::Inline
+            if object_destructuring_line_breaks.is_preserve() && self.properties_have_leading_newline() {
+                ObjectPatternLayout::Group { expand: true }
+            } else {
+                ObjectPatternLayout::Inline
+            }
         } else {
             ObjectPatternLayout::Group { expand: false }
         };
@@ -180,7 +192,8 @@ impl Format<JsFormatContext> for JsObjectPatternLike {
 
         write!(f, [self.l_curly_token().format()])?;
 
-        match self.layout(f.comments())? {
+        let object_destructuring_line_breaks = f.options().object_destructuring_line_breaks();
+        match self.layout(f.comments(), object_destructuring_line_breaks)? {
             ObjectPatternLayout::Empty => {
                 write!(
                     f,

@@ -52,7 +52,7 @@ use biome_js_analyze::{
 use biome_js_factory::make::ident;
 use biome_js_formatter::context::trailing_commas::TrailingCommas;
 use biome_js_formatter::context::{
-    ArrowParentheses, JsFormatOptions, OperatorLinebreak, QuoteProperties, Semicolons,
+    ArrowParentheses, JsFormatOptions, ObjectDestructuringLineBreaks, OperatorLinebreak, QuoteProperties, Semicolons,
 };
 use biome_js_formatter::format_node;
 use biome_js_parser::JsParserOptions;
@@ -97,6 +97,7 @@ pub struct JsFormatterSettings {
     pub attribute_position: Option<AttributePosition>,
     pub expand: Option<Expand>,
     pub operator_linebreak: Option<OperatorLinebreak>,
+    pub object_destructuring_line_breaks: Option<ObjectDestructuringLineBreaks>,
     pub trailing_newline: Option<TrailingNewline>,
 }
 
@@ -119,6 +120,7 @@ impl From<JsFormatterConfiguration> for JsFormatterSettings {
             line_ending: value.line_ending,
             expand: value.expand,
             operator_linebreak: value.operator_linebreak,
+            object_destructuring_line_breaks: value.object_destructuring_line_breaks,
             trailing_newline: value.trailing_newline,
         }
     }
@@ -293,7 +295,8 @@ impl ServiceLanguage for JsLanguage {
                 .or(global.trailing_newline)
                 .unwrap_or_default(),
         )
-        .with_operator_linebreak(language.operator_linebreak.unwrap_or_default());
+        .with_operator_linebreak(language.operator_linebreak.unwrap_or_default())
+        .with_object_destructuring_line_breaks(language.object_destructuring_line_breaks.unwrap_or_default());
 
         overrides.override_js_format_options(path, options)
     }

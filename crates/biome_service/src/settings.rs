@@ -1665,6 +1665,9 @@ impl OverrideSettingPattern {
         if let Some(operator_line_break) = js_formatter.operator_linebreak {
             options.set_operator_linebreak(operator_line_break);
         }
+        if let Some(object_destructuring_line_breaks) = js_formatter.object_destructuring_line_breaks {
+            options.set_object_destructuring_line_breaks(object_destructuring_line_breaks);
+        }
         if let Some(trailing_newline) = js_formatter.trailing_newline.or(formatter.trailing_newline)
         {
             options.set_trailing_newline(trailing_newline);

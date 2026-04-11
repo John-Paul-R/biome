@@ -194,6 +194,9 @@ pub struct JsFormatOptions {
 
     /// Whether to add a trailing newline at the end of the file. Defaults to true.
     trailing_newline: TrailingNewline,
+
+    /// Whether to preserve line breaks in object destructuring patterns. Defaults to "auto".
+    object_destructuring_line_breaks: ObjectDestructuringLineBreaks,
 }
 
 impl JsFormatOptions {
@@ -216,6 +219,7 @@ impl JsFormatOptions {
             expand: Expand::default(),
             operator_linebreak: OperatorLinebreak::default(),
             trailing_newline: TrailingNewline::default(),
+            object_destructuring_line_breaks: ObjectDestructuringLineBreaks::default(),
         }
     }
 
@@ -299,6 +303,11 @@ impl JsFormatOptions {
         self
     }
 
+    pub fn with_object_destructuring_line_breaks(mut self, object_destructuring_line_breaks: ObjectDestructuringLineBreaks) -> Self {
+        self.object_destructuring_line_breaks = object_destructuring_line_breaks;
+        self
+    }
+
     pub fn set_arrow_parentheses(&mut self, arrow_parentheses: ArrowParentheses) {
         self.arrow_parentheses = arrow_parentheses;
     }
@@ -363,6 +372,10 @@ impl JsFormatOptions {
         self.trailing_newline = trailing_newline;
     }
 
+    pub fn set_object_destructuring_line_breaks(&mut self, object_destructuring_line_breaks: ObjectDestructuringLineBreaks) {
+        self.object_destructuring_line_breaks = object_destructuring_line_breaks;
+    }
+
     pub fn arrow_parentheses(&self) -> ArrowParentheses {
         self.arrow_parentheses
     }
@@ -418,6 +431,10 @@ impl JsFormatOptions {
     pub fn trailing_newline(&self) -> TrailingNewline {
         self.trailing_newline
     }
+
+    pub fn object_destructuring_line_breaks(&self) -> ObjectDestructuringLineBreaks {
+        self.object_destructuring_line_breaks
+    }
 }
 
 impl FormatOptions for JsFormatOptions {
@@ -463,7 +480,8 @@ impl fmt::Display for JsFormatOptions {
         writeln!(f, "Attribute Position: {}", self.attribute_position)?;
         writeln!(f, "Expand lists: {}", self.expand)?;
         writeln!(f, "Operator linebreak: {}", self.operator_linebreak)?;
-        writeln!(f, "Trailing newline: {}", self.trailing_newline.value())
+        writeln!(f, "Trailing newline: {}", self.trailing_newline.value())?;
+        writeln!(f, "Object destructuring line breaks: {}", self.object_destructuring_line_breaks)
     }
 }
 
@@ -639,6 +657,50 @@ impl fmt::Display for OperatorLinebreak {
         match self {
             Self::After => write!(f, "After"),
             Self::Before => write!(f, "Before"),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, Deserializable, Eq, Hash, Merge, PartialEq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "camelCase")
+)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+pub enum ObjectDestructuringLineBreaks {
+    /// Let the formatter decide whether to collapse or expand object destructuring patterns.
+    #[default]
+    Auto,
+    /// Preserve line breaks in object destructuring patterns as written in the source.
+    Preserve,
+}
+
+impl ObjectDestructuringLineBreaks {
+    pub const fn is_preserve(&self) -> bool {
+        matches!(self, Self::Preserve)
+    }
+}
+
+impl FromStr for ObjectDestructuringLineBreaks {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "auto" => Ok(Self::Auto),
+            "preserve" => Ok(Self::Preserve),
+            _ => Err(
+                "Value not supported for ObjectDestructuringLineBreaks. Supported values are 'auto' and 'preserve'.",
+            ),
+        }
+    }
+}
+
+impl fmt::Display for ObjectDestructuringLineBreaks {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Auto => write!(f, "Auto"),
+            Self::Preserve => write!(f, "Preserve"),
         }
     }
 }

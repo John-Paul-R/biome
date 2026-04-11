@@ -279,6 +279,7 @@ impl TryFrom<PrettierConfiguration> for biome_configuration::Configuration {
             jsx_quote_style: Some(jsx_quote_style),
             attribute_position: Some(AttributePosition::default()),
             operator_linebreak: None,
+            object_destructuring_line_breaks: None,
             trailing_newline: None,
         };
         let js_config = biome_configuration::JsConfiguration {
